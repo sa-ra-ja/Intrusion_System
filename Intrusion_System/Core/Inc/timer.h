@@ -11,7 +11,8 @@
 #include "stm32f4xx.h"
 
 #define TIM_PCLK 16000000
-#define TIM_PR	16
+#define TIM_PR
+extern volatile int duty;
 
 void TimerPWMinit(void);
 

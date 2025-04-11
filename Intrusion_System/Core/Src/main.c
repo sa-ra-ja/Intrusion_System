@@ -24,7 +24,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "lcd.h"
-#include "timer.h"
+//#include "timer.h"
+#include "led.h"
+#include "rtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,7 +84,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  extint_init();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -96,15 +98,17 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   MX_USART2_UART_Init();
-  	TimerPWMinit();
   /* USER CODE BEGIN 2 */
-
+	RtcDate_t dt = { .date = 31, .month = 12, .year = 24, .weekday = 2 };
+  RtcTime_t tm = { .hr = 23, .min = 59, .sec = 55 };
+  RtcInit(&dt, &tm);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  RtcGetTime(&tm);
 	  char str[32];
 
 	  HAL_ADC_Start(&hadc1);
@@ -112,17 +116,31 @@ int main(void)
 	  val= HAL_ADC_GetValue(&hadc1);
 	  HAL_ADC_Stop(&hadc1);
 	  LcdInit();
+	  InitLed(BLUE);
 	  if(val>=3500)
-	  {sprintf(str,"LDR VALUE = %d WARNING\r\n",val);
+	  {
+		  if (flag==1){
+			  flag=0;
+			  OnLed(BLUE);
+			  	sprintf(str,"LDR VALUE = %d %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
+			  		  HAL_UART_Transmit(&huart2,(uint8_t*)str,strlen(str),HAL_MAX_DELAY);
+			  		  LcdPuts(LCD_LINE1, "SYSTEM NORMAL");
+			  		  LcdPuts(LCD_LINE2, "HELO DARKNESS");
+			  		HAL_Delay(1000);
+			  		ToggleLed(BLUE);
+		  }
+
+		  sprintf(str,"LDR VALUE = %d WARNING %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
 	  HAL_UART_Transmit(&huart2,(uint8_t*)str,strlen(str),HAL_MAX_DELAY);
 	  LcdPuts(LCD_LINE1, "ALERT:Intrusion Detected!");
 
 	  LcdPuts(LCD_LINE2, str);
 	  }
-	  else {sprintf(str,"LDR RAW VALUE = %d \r\n",val);
+	  else {sprintf(str,"LDR VALUE = %d %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
 	  HAL_UART_Transmit(&huart2,(uint8_t*)str,strlen(str),HAL_MAX_DELAY);
-	  LcdPuts(LCD_LINE1, "NORMAL");
+	  LcdPuts(LCD_LINE1, "SYSTEM NORMAL");
 	  LcdPuts(LCD_LINE2, "HELO DARKNESS");
+
 	  }
 	  HAL_Delay(1000);
     /* USER CODE END WHILE */
@@ -217,7 +235,7 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)

@@ -7,20 +7,21 @@
 
 #include "timer.h"
 #include "main.h"
+#include "led.h"
 
-  int duty;
+volatile int duty;
 
 void TimerPWMinit(void){
 	//configuring PC6 as TIM8 CH1
 	//enabling PC clock
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
 	//setting PC6 mode as Alternate Fn (10)
-	GPIOC->MODER |= (1<<(2*6+1));
-	GPIOC->MODER &= ~(1<<(2*6));
+	GPIOD->MODER |= (1<<(2*13+1));
+	GPIOD->MODER &= ~(1<<(2*13));
 	//disabling pull-up and pull-down
-	GPIOC->PUPDR &= ~((1<<(2*6))|(1<<(2*6+1)));
+	GPIOD->PUPDR &= ~((1<<(2*13))|(1<<(2*13+1)));
 	//set alt fn "3" as TIM8
-	GPIOC->AFR[0] |= (3<<(6*4));
+	GPIOD->AFR[1] |= (3<<19);
 
 	//PWM config
 
@@ -49,12 +50,15 @@ void TimerPWMinit(void){
 	TIM8->BDTR |= TIM_BDTR_MOE;
 	TIM8->CR1 |= TIM_CR1_CEN;
 	TIM8->DIER |= TIM_DIER_UIE;
-	NVIC_EnableIRQ(TIM8_CC_IRQn);
+	NVIC_EnableIRQ(TIM8_TRG_COM_TIM14_IRQn);
 	TIM8->CR1 |= TIM_CR1_CEN;
-
 }
 
-void TIM8_CC_IRQHandler(void){
+void TIM8_TRG_COM_TIM14_IRQHandler(void){
+	InitLed(ORANGE);
+	OnLed(ORANGE);
+	HAL_Delay(100);
+	OffLed(ORANGE);
 
 	if(TIM8->SR & TIM_SR_UIF){
 		TIM8->SR &= ~TIM_SR_UIF;
