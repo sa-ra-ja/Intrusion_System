@@ -109,7 +109,7 @@ int main(void)
   while (1)
   {
 	  RtcGetTime(&tm);
-	  char str[32];
+	  char str[64];
 
 	  HAL_ADC_Start(&hadc1);
 	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
@@ -130,7 +130,7 @@ int main(void)
 			  		ToggleLed(BLUE);
 		  }
 
-		  sprintf(str,"LDR VALUE = %d WARNING %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
+		  sprintf(str,"LDR VALUE = %d \e[1;31mWARNING\e[0m %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
 	  HAL_UART_Transmit(&huart2,(uint8_t*)str,strlen(str),HAL_MAX_DELAY);
 	  LcdPuts(LCD_LINE1, "ALERT:Intrusion Detected!");
 

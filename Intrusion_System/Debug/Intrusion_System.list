@@ -7,19 +7,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         00003b34  08000190  08000190  00001190  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       000000e0  08003cc4  08003cc4  00004cc4  2**2
+  2 .rodata       000000ec  08003cc4  08003cc4  00004cc4  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  08003da4  08003da4  0000505c  2**0
+  3 .ARM.extab    00000000  08003db0  08003db0  0000505c  2**0
                   CONTENTS, READONLY
-  4 .ARM          00000008  08003da4  08003da4  00004da4  2**2
+  4 .ARM          00000008  08003db0  08003db0  00004db0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  08003dac  08003dac  0000505c  2**0
+  5 .preinit_array 00000000  08003db8  08003db8  0000505c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  08003dac  08003dac  00004dac  2**2
+  6 .init_array   00000004  08003db8  08003db8  00004db8  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .fini_array   00000004  08003db0  08003db0  00004db0  2**2
+  7 .fini_array   00000004  08003dbc  08003dbc  00004dbc  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .data         0000005c  20000000  08003db4  00005000  2**2
+  8 .data         0000005c  20000000  08003dc0  00005000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
   9 .ccmram       00000000  10000000  10000000  0000505c  2**0
                   CONTENTS
@@ -1345,7 +1345,7 @@ int main(void)
  8000b74:	f7ff ff1e 	bl	80009b4 <ToggleLed>
 		  }
 
-		  sprintf(str,"LDR VALUE = %d WARNING %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
+		  sprintf(str,"LDR VALUE = %d \e[1;31mWARNING\e[0m %02d:%02d:%02d\r\n",val,tm.hr,tm.min,tm.sec);
  8000b78:	4b2a      	ldr	r3, [pc, #168]	@ (8000c24 <main+0x1a8>)
  8000b7a:	881b      	ldrh	r3, [r3, #0]
  8000b7c:	b29b      	uxth	r3, r3
@@ -1425,8 +1425,8 @@ int main(void)
   {
  8000c14:	e758      	b.n	8000ac8 <main+0x4c>
  8000c16:	bf00      	nop
- 8000c18:	08003d48 	.word	0x08003d48
- 8000c1c:	08003d50 	.word	0x08003d50
+ 8000c18:	08003d54 	.word	0x08003d54
+ 8000c1c:	08003d5c 	.word	0x08003d5c
  8000c20:	2000007c 	.word	0x2000007c
  8000c24:	2000010c 	.word	0x2000010c
  8000c28:	20000078 	.word	0x20000078
@@ -1435,7 +1435,7 @@ int main(void)
  8000c34:	08003ce4 	.word	0x08003ce4
  8000c38:	08003cf4 	.word	0x08003cf4
  8000c3c:	08003d04 	.word	0x08003d04
- 8000c40:	08003d2c 	.word	0x08003d2c
+ 8000c40:	08003d38 	.word	0x08003d38
 
 08000c44 <SystemClock_Config>:
 /**
@@ -2905,7 +2905,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  80013e0:	2000005c 	.word	0x2000005c
   ldr r2, =_sidata
- 80013e4:	08003db4 	.word	0x08003db4
+ 80013e4:	08003dc0 	.word	0x08003dc0
   ldr r2, =_sbss
  80013e8:	2000005c 	.word	0x2000005c
   ldr r4, =_ebss
@@ -6595,7 +6595,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
  80028ca:	bf00      	nop
  80028cc:	40023c00 	.word	0x40023c00
  80028d0:	40023800 	.word	0x40023800
- 80028d4:	08003d58 	.word	0x08003d58
+ 80028d4:	08003d64 	.word	0x08003d64
  80028d8:	20000000 	.word	0x20000000
  80028dc:	20000004 	.word	0x20000004
 
@@ -6899,7 +6899,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  8002b20:	4618      	mov	r0, r3
  8002b22:	bd80      	pop	{r7, pc}
  8002b24:	40023800 	.word	0x40023800
- 8002b28:	08003d68 	.word	0x08003d68
+ 8002b28:	08003d74 	.word	0x08003d74
 
 08002b2c <HAL_RCC_GetPCLK2Freq>:
   * @note   Each time PCLK2 changes, this function must be called to update the
@@ -6925,7 +6925,7 @@ uint32_t HAL_RCC_GetPCLK2Freq(void)
  8002b48:	4618      	mov	r0, r3
  8002b4a:	bd80      	pop	{r7, pc}
  8002b4c:	40023800 	.word	0x40023800
- 8002b50:	08003d68 	.word	0x08003d68
+ 8002b50:	08003d74 	.word	0x08003d74
 
 08002b54 <HAL_UART_Init>:
   * @param  huart  Pointer to a UART_HandleTypeDef structure that contains
@@ -8084,10 +8084,10 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  80033fe:	4798      	blx	r3
  8003400:	3601      	adds	r6, #1
  8003402:	e7f2      	b.n	80033ea <__libc_init_array+0x1e>
- 8003404:	08003dac 	.word	0x08003dac
- 8003408:	08003dac 	.word	0x08003dac
- 800340c:	08003dac 	.word	0x08003dac
- 8003410:	08003db0 	.word	0x08003db0
+ 8003404:	08003db8 	.word	0x08003db8
+ 8003408:	08003db8 	.word	0x08003db8
+ 800340c:	08003db8 	.word	0x08003db8
+ 8003410:	08003dbc 	.word	0x08003dbc
 
 08003414 <__retarget_lock_acquire_recursive>:
  8003414:	4770      	bx	lr
@@ -8593,11 +8593,11 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  800389c:	4638      	mov	r0, r7
  800389e:	f000 f879 	bl	8003994 <_printf_i>
  80038a2:	e7ed      	b.n	8003880 <_svfiprintf_r+0x1c0>
- 80038a4:	08003d70 	.word	0x08003d70
- 80038a8:	08003d7a 	.word	0x08003d7a
+ 80038a4:	08003d7c 	.word	0x08003d7c
+ 80038a8:	08003d86 	.word	0x08003d86
  80038ac:	00000000 	.word	0x00000000
  80038b0:	08003609 	.word	0x08003609
- 80038b4:	08003d76 	.word	0x08003d76
+ 80038b4:	08003d82 	.word	0x08003d82
 
 080038b8 <_printf_common>:
  80038b8:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -8926,8 +8926,8 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  8003bc0:	2500      	movs	r5, #0
  8003bc2:	f104 0619 	add.w	r6, r4, #25
  8003bc6:	e7f5      	b.n	8003bb4 <_printf_i+0x220>
- 8003bc8:	08003d81 	.word	0x08003d81
- 8003bcc:	08003d92 	.word	0x08003d92
+ 8003bc8:	08003d8d 	.word	0x08003d8d
+ 8003bcc:	08003d9e 	.word	0x08003d9e
 
 08003bd0 <memmove>:
  8003bd0:	4288      	cmp	r0, r1
