@@ -1,0 +1,195 @@
+//EXTERNAL INTERRUPT
+
+1.Enable clock and configure switch pin.
+2.configure external interrupt in system SYSCFG->EXTICR
+3.configure external interupt in external interupt controler EXTI->IMR,RTSR(Rising edge),FTSR(Falling)
+4.NVIC_EnableIRQ
+5.write handler 
+void EXTI0_IRQHandler(void){
+	//clear interrupt EXTI->PR
+	//DO some action.
+}
+
+//UART
+
+1.Enable GPIO clock(GPIOA) ,PUPDR no pullup/down,GPIO(PA2,PA3) alternate fn.
+2.set gpio(PA2,PA3) alt gn as uart (AF7) -- AFRL=AFR[0],AFRH=AFR[1]
+3.Enable UART2 clock and config (8N1) = 8-bit data transfer=0,disable parity=0,tx en=1,rx en=1 USART2->CR1
+4.baud rate setting 
+	baud	USART2->BRR
+	9600 	0x0683
+	38400	0x01A1
+	115200	0x008B
+5.Enable uart=1
+6.USART2->DR(data),SR(status)..(one charater at a time,use loop)
+
+//SPI
+
+1.config PE3 as GPIO and Enable clock,mode,type...
+2.config PA5,6,7 as SPI1
+	enable clock
+	mode:alt fn (10)
+	set alt gn = SPI1 = AF5 (GPIOA->AFR[0]) PUPDR:disble all
+3.spi config 
+	clock
+	CR1 -- master mode,software slave mgmt,set bit rate (010 = 2Mhz), cpol=0,cpha=0,lsbf==0,
+	disable spi intrs & dma (default), frame format = spi
+	enable spi in CR1
+4.SPI transfer SPI1->DR for data and SPI_SR_TXE,SPI_SR_RXNE for status
+
+//I2C(IIC)
+
+1.GPIO B clock,alt fn (10),set alt fn to AF4 (i2c),no PUPDR,enable open-drain for PB6 & PB7
+2.i2c config
+	i2c peri clock RCC
+	i2c sw reset
+	clear all CR1 bits
+	I2C1->CR2 --- 16MHz
+	set i2c clock -- CCR = 80 (Std mode=100KHz)
+	set Trise -- TRISE = 17
+	enable ack
+	enable i2c peri
+3.to start -- 
+	send start bit
+	wait for start bit sent on bus
+4.to stop --
+	send stop bit
+	wait for stop bit sent on bus
+5.write slave addr in DR--wait until salve addr is sent--read status to clear acks
+6.to send data 
+	wait unitl data sent
+	write to DR
+	poll for BTF is tranferred while(!(I2C1->SR1 & I2C_SR1_BTF))
+7.to recieve data ack
+	send ack for next byte read
+	wait until data is recieved
+	collect recieved data and return it
+8.to revice data no ack
+	send no ack for next byte read
+	wait until data is recieved
+	collect recieved data and return it
+9.to write
+	I2C start
+	send slave addr
+	send data
+	stop
+
+//TIMER
+(PCLK 16000000,TIM_PR 16000)
+1.Enable timer clock,set prescalaer 16000
+2.void TimerDelayMs(uint32_t ms){
+	calculate num of clocks to count
+		cnt = (PCLK/1000)*ms/TIM_PR
+	set max count in ARR
+		TIM6->ARR = cnt-1
+	start from 0
+		TIM6->CNT = 0;
+	start timer
+		TIM6->CR1
+	wait for update event --SR
+		while(!(TIM6->SR & TIM_SR_UIF));
+	clear update event --SR
+	stop timer -- CR1
+}	
+3. for interupt(inside init)
+	enable timer inperupt in DIER
+	enable timer interupt in NVIC
+	start timer in CR1
+ void TIM6_DAC_IRQHandler(void){
+	check if UIF is set in SR
+		clear UIF
+		perform interrupt task(e.g.glow led)
+	}
+
+//PWM
+(TIM_PCLK 16000000,TIM_PR 16)
+1.init 
+	config PC6 as TIM8 CH1
+	enable clock
+	set PC6 as Alt fn (10)
+	set alt fn "3" as TIM8
+ PWM config
+	enable TIM8 clock
+	setup PWM clock,period(ARR) and duty cycle(CCR)
+		TIM8->PSC = TIM_PR - 1;
+		TIM8->ARR = 100 - 1;		
+		TIM8->CCR1 = 0;
+		//Duty Cycle = CCR/ARR
+		//Freq = TCLK/PR*ARR
+
+		//0.01 kHz	10 cycle/second
+		//0.1 kHz	100 cycle/second
+		//1 kHz		1000 cycle/second
+		//2 kHz		2000 cycle/second
+		//3 kHz		3000 cycle/second
+		//5 kHz		5000 cycle/second
+		//10 kHz	10000 cycle/second
+		//20 kHz	20000 cycle/second
+		//50 kHz	50000 cycle/second
+		//100 kHz	100000 cycle/second
+		//1000 kHz	1000000 cycle/second
+	
+		//   - PCLK = 16MHz, PSC = 16 --> TCLK = 1MHz
+ 	       //   - ARR = 100 => PWM output freq = TCLK / ARR = 1 MHz / 100 = 10 KHz
+ 	       //   - CCR = 50 => 50% Duty Cycle	
+	Configure output pin
+		- Select the output mode by writing CCS bits (00 = output) in CCMRx register.
+		- Select the polarity by writing the CCxP bit (0 = active high) in CCER register.
+	Select the PWM mode (PWM1 or PWM2) by writing OCxM bits in CCMRx register.(mode1)
+		- The PWM mode can be selected independently on each channel (one PWM per OCx output) by writing 110     (PWM mode 1) or 111 (PWM mode 2) in the TIMx_CCMRx register.
+	Set the preload bit in CCMRx register and the ARPE bit in the CR1 register.
+	Select the counting mode in CR1:
+		- edge align
+		- centre align
+	Enable capture compare in CCER
+	Enable main output in BDTR and enable the counter.
+2.Setting duty cycle value in TIM8->CCR1 (with loop or increment upto 100-0)
+
+//SysTick
+
+1.SysTick_Config(SystemCoreClock/1000)
+2.void SysTick_Handler(void){ticks++;}	//volatile uint32_t ticks;//declared gloabllly
+3.void SysTickDelayMs(uint32_t ms){
+	uint32_t local_var = ticks;
+	uint32_t end_time = now + ms;
+	while(ticks<end_time)
+		;
+}
+
+//WATCHDOG
+(WDT_LSICLK 32000,WDT_PR 256,WDT_PR_VAL 6)
+1.Enable LSI clock and wait unitl LSI is ready
+2.Enable IWDG by writing 0xCCCC into IWDG_KR
+3.Enable register access by writing 0x5555 into IWDG_KR
+4.Set Prescalar in IWDG_PR
+5.set reload value in IWDG_RLR
+	uint32_t cnt = (WDT_LSICLK/1000)*ms/WDT_PR;//ms=9600
+	IWDG->RLR = cnt -1;
+6.wait for registers to be updated (IWDG->SR)
+ .Feed watchdog with IWDG->KR = 0xAAAA;
+7.step 7. If reset due to IWDG, Bit 29 in RCC_CSR is set. Check the bit immediately after initialization an    d report the error.
+	if((RCC->CSR & RCC_CSR_IWDGRSTF) != 0)
+
+//ADC
+
+1.Enable clock
+2.Configure GPIO as analogue
+3.Enable ADC peripheral clock RCC->APB2ENR
+4.Set ADC resolution as 12-bits CR1=0b00
+5.Enable single conversion CR2 CONT = 0b0
+6.Set number of conversion in a sequence (SQR1 L(3:0) = 0b0000 for 1 conversion)
+7.Set channel number for conversion in sequecnce(e.g. SQR3 (4:0) = 0b00000 for channel 0)
+8.Enable ADC ADC1->CR2
+9.Start conversion (CR2)
+10.wait for end of converison (SR EOC bit)
+	while(!(ADC1->SR & ADC_SR_EOC));
+11.Read ADC data register ADC1->DR
+
+//DAC
+
+1.Enable GPIOA peripheral (DAC1_OUT=PA4)
+2.Set GPIO to analogue
+3.Enable DAC peri. (APB1)
+4.Enable DAC channel,output buffer,trigger and select trigger (software=0b111) (CR).
+5.Set value to DAC register (DHRxRx) DHR12R1
+6.Trigger converions (in SWTRIGR)
