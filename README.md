@@ -1,6 +1,6 @@
-##HACKATHON CDAC
+## HACKATHON CDAC
 
-#Akanksha Verma
-#Sarang Jadhav
+# Akanksha Verma
+# Sarang Jadhav
 
-###Project Title: Ambient Intrusion Alert System
+### Project Title: Ambient Intrusion Alert System
