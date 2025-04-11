@@ -1,0 +1,5 @@
+../Core/Src/led.c:10:6:InitLed	16	static
+../Core/Src/led.c:15:6:OnLed	16	static
+../Core/Src/led.c:19:6:OffLed	16	static
+../Core/Src/led.c:23:6:ToggleLed	16	static
+../Core/Src/led.c:27:6:BlinkLed	16	static
